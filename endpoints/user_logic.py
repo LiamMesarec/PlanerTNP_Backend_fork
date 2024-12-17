@@ -1,15 +1,15 @@
 from bson.objectid import ObjectId
-
+import bcrypt
 from db import db
-
 
 def login_user(user_data):
     collection = db.users
-    filter = {"Email": user_data["Email"], "Password": user_data["Password"]}
+    filter = {"Email": user_data["Email"]}
     result = collection.find_one(filter)
-    if result is None:
+
+    if result is None or not bcrypt.checkpw(user_data["Password"].encode('utf-8'), result["Password"].encode('utf-8')):
         return {"error": "Invalid username or password"}, 400
-    
+
     result["tasks"] = []
     result['id'] = str(result.get('id'))
     result['_id'] = str(result['_id'])
@@ -20,13 +20,11 @@ def login_user(user_data):
 def register_user(user_data):
     collection = db.users
 
-
     email_filter = {"Email": user_data["Email"]}
     email_result = collection.find_one(email_filter)
 
     if email_result is not None:
         return {"error": "Email already exists"}, 400
-
 
     username_filter = {"Username": user_data["Username"]}
     username_result = collection.find_one(username_filter)
@@ -35,11 +33,14 @@ def register_user(user_data):
         return {"error": "Username already exists"}, 400
 
 
+    password = user_data["Password"]
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    user_data["Password"] = hashed_password.decode('utf-8')
+
     insert_result = collection.insert_one(user_data)
     user_data['_id'] = str(insert_result.inserted_id)
 
     return user_data, 200
-
 # user_logic.py
 
 def set_user_data(user_id, profile_data):
