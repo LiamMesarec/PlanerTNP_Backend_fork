@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request
 from endpoints.schedule_processor import process_csv_to_db
 from endpoints.schedule_retriever import (retrieve_all_subjects,
                                           retrieve_schedule, fetch_all_schedules_transformed)
-from endpoints.task_logic import delete_task, get_all_tasks, set_task
+from endpoints.task_logic import delete_task, get_all_tasks, set_task, get_all_tasks_with_deleted
 from endpoints.user_logic import (delete_user, get_user_data, login_user,
                                   register_user, set_user_data,
                                   update_user_data)
@@ -14,6 +14,11 @@ from endpoints.user_logic import (delete_user, get_user_data, login_user,
 auth_bp = Blueprint('auth', __name__)
 schedule_bp = Blueprint('schedule', __name__)
 task_bp = Blueprint('task', __name__)
+
+@task_bp.route('/user/<user_id>/tasks/all', methods=['GET'])
+def retrieve_all_tasks_including_deleted(user_id):
+    result, status_code = get_all_tasks_with_deleted(user_id)
+    return jsonify(result), status_code
 
 
 @auth_bp.route('/login', methods=['POST'])

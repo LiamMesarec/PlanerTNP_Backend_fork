@@ -20,22 +20,23 @@ def login_user(user_data):
 def register_user(user_data):
     collection = db.users
 
-    email_filter = {"Email": user_data["Email"]}
+    print(user_data)
+    email_filter = {"Email": user_data["email"]}
     email_result = collection.find_one(email_filter)
 
     if email_result is not None:
         return {"error": "Email already exists"}, 400
 
-    username_filter = {"Username": user_data["Username"]}
+    username_filter = {"Username": user_data["username"]}
     username_result = collection.find_one(username_filter)
 
     if username_result is not None:
         return {"error": "Username already exists"}, 400
 
 
-    password = user_data["Password"]
+    password = user_data["password"]
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
-    user_data["Password"] = hashed_password.decode('utf-8')
+    user_data["password"] = hashed_password.decode('utf-8')
 
     insert_result = collection.insert_one(user_data)
     user_data['_id'] = str(insert_result.inserted_id)
